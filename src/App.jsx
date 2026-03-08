@@ -4,6 +4,7 @@
 //  Guardar en: src/App.jsx
 // ══════════════════════════════════════════════════════════════════════════════
 import { useState, useRef, useEffect, useCallback } from "react";
+import LogoImg from "./logoAzul.svg";
 import {
   supabase,
   signUp, signIn, signInWithGoogle, signOut, getSession,
@@ -291,7 +292,8 @@ function ErrMsg({msg}){
 }
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
-function Logo({onNav}){ return <div className="logo" onClick={()=>onNav("home")}><span style={{fontSize:21}}>✅</span><span className="logo-t">Solu<span>match</span></span></div>; }
+
+function Logo({onNav}){ return <div className="logo" onClick={()=>onNav("home")}><img src={LogoImg} style={{height:36,width:"auto",maxWidth:160}}/></div>; }
 
 function TopBar({onNav,user}){
   return <div className="topbar">
