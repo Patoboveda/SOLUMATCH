@@ -5,6 +5,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 import { useState, useRef, useEffect, useCallback } from "react";
 import LogoImg from "./logoAzul.svg";
+import LogoBlanco from "./LogoBlanco.svg";
 import {
   supabase,
   signUp, signIn, signInWithGoogle, signOut, getSession,
@@ -15,6 +16,8 @@ import {
   getMessages, sendMessage, subscribeToMessages,
   uploadPhoto,
 } from "./supabase";
+function Logo({onNav}){ return <div className="logo" onClick={()=>onNav("home")}><img src={LogoImg} style={{height:36,width:"auto",maxWidth:160}}/></div>; }
+
 
 // ─── TOKENS ──────────────────────────────────────────────────────────────────
 const T = {
@@ -31,10 +34,10 @@ const T = {
 
 // ─── CSS ─────────────────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Syne:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Syne:wght@700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#b8bfcf;color:${T.td};-webkit-font-smoothing:antialiased;}
+body{font-family:'Poppins',sans-serif;background:#b8bfcf;color:${T.td};-webkit-font-smoothing:antialiased;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#c5cad8;border-radius:3px;}
 .shell{max-width:430px;margin:0 auto;min-height:100vh;background:#fff;box-shadow:0 0 80px rgba(11,23,64,0.2);padding-bottom:68px;overflow-x:hidden;}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:none;cursor:pointer;font-family:inherit;font-weight:700;border-radius:50px;transition:all .2s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
@@ -293,11 +296,10 @@ function ErrMsg({msg}){
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
 
-function Logo({onNav}){ return <div className="logo" onClick={()=>onNav("home")}><img src={LogoImg} style={{height:36,width:"auto",maxWidth:160}}/></div>; }
 
 function TopBar({onNav,user}){
   return <div className="topbar">
-    <div style={{display:"flex",gap:9}}>
+    <div style={{display:"flex",gap:9,alignItems:"center"}}>
       <a href="#" onClick={e=>{e.preventDefault();onNav("terms")}}>Condiciones</a>
       <span style={{opacity:.3}}>|</span>
       <a href="#" onClick={e=>{e.preventDefault();onNav("faqs")}}>FAQ</a>
@@ -358,7 +360,7 @@ function BNav({page,onNav,user}){
 function Footer({onNav}){
   return <footer className="footer">
     <div className="fgrid">
-      <div><div className="fl">Solu<span>match</span></div><p className="fdesc">Conectamos personas con especialistas para cualquier tarea del hogar.</p></div>
+      <div><img src={LogoBlanco} style={{height:36,width:"auto",marginBottom:8}}/><p className="fdesc">Conectamos personas con especialistas para cualquier tarea del hogar.</p></div>
       <div><div style={{fontSize:10.5,color:"rgba(255,255,255,.4)",marginBottom:7,textTransform:"uppercase",letterSpacing:.5}}>Próximamente</div>
         <button className="stbtn">▶ Google Play</button><button className="stbtn">🍎 App Store</button></div>
     </div>
@@ -489,26 +491,56 @@ function HomePage({onNav,user}){
 
   return <div>
     <TopBar onNav={onNav} user={user}/><Navbar onNav={onNav} user={user}/>
-    <div className="hero">
-      <div style={{display:"grid",gridTemplateColumns:"1.2fr 1fr",gap:7,marginBottom:16}}>
-        <img src={DEMO_AVS[0]} style={{borderRadius:10,objectFit:"cover",width:"100%",height:120,gridRow:"span 2"}} alt=""/>
-        <img src={DEMO_AVS[2]} style={{borderRadius:10,objectFit:"cover",width:"100%",height:55}} alt=""/>
-        <img src={DEMO_AVS[4]} style={{borderRadius:10,objectFit:"cover",width:"100%",height:55}} alt=""/>
-      </div>
-      <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.1)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,.18)",borderRadius:30,padding:"5px 12px",fontSize:11,color:"rgba(255,255,255,.8)",marginBottom:11}}>
-        📍 Gran Buenos Aires, Argentina
-      </div>
-      <h1 className="htitle"><em>Publicá</em> · Elegí · Resolvé</h1>
-      <div style={{display:"flex",gap:9,flexWrap:"wrap",position:"relative",zIndex:1}}>
-        <button className="btn bp blg" onClick={()=>onNav("publish1")}>Publicar Trabajo</button>
-        <button className="btn" style={{background:"rgba(255,255,255,.13)",backdropFilter:"blur(8px)",color:"#fff",border:"1px solid rgba(255,255,255,.26)",borderRadius:50,padding:"14px 18px",fontSize:14,fontWeight:700,cursor:"pointer"}} onClick={()=>onNav("search2")}>Ver trabajos</button>
-      </div>
-      <div style={{display:"flex",gap:9,marginTop:16}}>
-        {[["2.400+","Especialistas"],["8.900+","Trabajos"],["4.8★","Calificación"]].map(([n,l])=>(
-          <div key={l} className="stat"><div className="stat-n">{n}</div><div className="stat-l">{l}</div></div>
-        ))}
-      </div>
+    <div className="hero" style={{position:"relative",overflow:"hidden",padding:"0 0 24px",background:T.navy}}>
+  {/* Carrusel de fondo */}
+  <style>{`
+    @keyframes scrollLeft {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .carousel-track {
+      display: flex;
+      gap: 8px;
+      animation: scrollLeft 18s linear infinite;
+      width: max-content;
+      margin-bottom: 14px;
+    }
+    .carousel-track img {
+      width: 110px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+  `}</style>
+  <div style={{overflow:"hidden",borderRadius:12,marginBottom:16}}>
+    <div className="carousel-track">
+      <img src="https://images.pexels.com/photos/5691622/pexels-photo-5691622.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/6196685/pexels-photo-6196685.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/1453499/pexels-photo-1453499.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/5691622/pexels-photo-5691622.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/5691622/pexels-photo-5691622.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/6196685/pexels-photo-6196685.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/3771120/pexels-photo-3771120.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/5691622/pexels-photo-5691622.jpeg?w=220" alt=""/>
+      <img src="https://images.pexels.com/photos/4246120/pexels-photo-4246120.jpeg?w=220" alt=""/>
     </div>
+  
+  </div>
+  <div style={{padding:"14px 14px 0",position:"relative",zIndex:1}}>
+    <p style={{color:"rgba(255,255,255,.75)",fontSize:13,marginBottom:16,lineHeight:1.5}}>Encontrá el especialista ideal para tu hogar en minutos</p>
+    <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:20}}>
+      <button className="btn bp blg" style={{width:"100%",justifyContent:"center"}} onClick={()=>onNav("publish1")}>📋 Publicá tu trabajo gratis</button>
+      <button className="btn" style={{background:"rgba(255,255,255,.13)",backdropFilter:"blur(8px)",color:"#fff",border:"1px solid rgba(255,255,255,.26)",borderRadius:50,padding:"14px 18px",fontSize:14,fontWeight:700,cursor:"pointer",width:"100%"}} onClick={()=>onNav("createSpec")}>💰 Ganá plata con Solumatch</button>
+    </div>
+    <div style={{display:"flex",gap:9}}>
+      {[["50","Especialistas"],["100+","Trabajos"],["4.8★","Calificación"]].map(([n,l])=>(
+        <div key={l} className="stat"><div className="stat-n">{n}</div><div className="stat-l">{l}</div></div>
+      ))}
+    </div>
+  </div>
+</div>
     <div style={{padding:"18px 14px 8px"}}>
       <div style={{display:"flex",gap:18,borderBottom:`1px solid ${T.border}`,marginBottom:14}}>
         {[["works","Trabajos disponibles"],["specs","Especialistas"]].map(([id,lb])=>(
