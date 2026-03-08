@@ -229,7 +229,7 @@ export const subscribeToMessages = (userId, otherId, callback) => {
 // ─── STORAGE (fotos) ─────────────────────────────────────────
 
 export const uploadPhoto = async (file, path) => {
-  const { data, error } = await supabase.storage
+  const { _data, error } = await supabase.storage
     .from('photos')
     .upload(path, file, { upsert: true });
   if (error) return { url: null, error };
