@@ -1303,8 +1303,29 @@ function Membership({onNav,user,userPlan,setUserPlan}){
       if(user?.id) await updateProfile(user.id,{plan:"free"});
       return;
     }
-    // En producción: redirigir a Mercado Pago
-    // Por ahora activamos directo (demo)
+    const handlePlan=async(planId)=>{
+    if(planId==="free"){
+      setUserPlan("free");
+      if(user?.id) await updateProfile(user.id,{plan:"free"});
+      return;
+    }
+    // Crear suscripción con Mercado Pago
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(
+      `https://lothngcnufgpxgpbjlau.supabase.co/functions/v1/create-subscription`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ plan: planId, user_id: user?.id, email: user?.email }),
+      }
+    );
+    const { init_point, error } = await res.json();
+    if (error) { alert("Error al procesar el pago. Intentá de nuevo."); return; }
+    if (init_point) window.location.href = init_point;
+  };
     setUserPlan(planId);
     if(user?.id) await updateProfile(user.id,{plan:planId});
   };
