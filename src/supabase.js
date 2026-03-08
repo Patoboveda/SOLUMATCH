@@ -236,3 +236,27 @@ export const uploadPhoto = async (file, path) => {
   const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(path);
   return { url: publicUrl, error: null };
 };
+// ─── LICITACIONES ─────────────────────────────────────────────
+export const getLicitaciones = async () =>
+  supabase.from("licitaciones").select("*, profiles(name, avatar_url)").order("created_at", { ascending: false });
+
+export const getMyLicitaciones = async (userId) =>
+  supabase.from("licitaciones").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+
+export const createLicitacion = async (data) =>
+  supabase.from("licitaciones").insert([data]).select().single();
+
+export const updateLicitacion = async (id, data) =>
+  supabase.from("licitaciones").update(data).eq("id", id);
+
+export const getPropuestas = async (licitacionId) =>
+  supabase.from("propuestas").select("*, profiles(name, avatar_url)").eq("licitacion_id", licitacionId);
+
+export const createPropuesta = async (data) =>
+  supabase.from("propuestas").insert([data]).select().single();
+
+export const adjudicarPropuesta = async (licitacionId, propuestaId, winnerId) => {
+  await supabase.from("propuestas").update({ status: "rechazada" }).eq("licitacion_id", licitacionId);
+  await supabase.from("propuestas").update({ status: "ganadora" }).eq("id", propuestaId);
+  return supabase.from("licitaciones").update({ status: "adjudicada", winner_id: winnerId }).eq("id", licitacionId);
+}

@@ -15,6 +15,8 @@ import {
   createPostulacion, getMyPostulaciones, confirmPostulacion,
   getMessages, sendMessage, subscribeToMessages,
   uploadPhoto,
+  getLicitaciones, getMyLicitaciones, createLicitacion,
+  getPropuestas, createPropuesta, adjudicarPropuesta,
 } from "./supabase";
 function Logo({onNav}){ return <div className="logo" onClick={()=>onNav("home")}><img src={LogoImg} style={{height:36,width:"auto",maxWidth:160}}/></div>; }
 
@@ -303,6 +305,8 @@ function TopBar({onNav,user}){
       <a href="#" onClick={e=>{e.preventDefault();onNav("terms")}}>Condiciones</a>
       <span style={{opacity:.3}}>|</span>
       <a href="#" onClick={e=>{e.preventDefault();onNav("faqs")}}>FAQ</a>
+      <span style={{opacity:.3}}>|</span>
+      <a href="#" onClick={e=>{e.preventDefault();onNav("licitaciones")}}>Obras</a>
     </div>
     <div style={{display:"flex",gap:6,alignItems:"center"}}>
       {user
@@ -340,6 +344,7 @@ function BNav({page,onNav,user}){
     {id:"home",ic:"🏠",lb:"Inicio"},
     {id:"search2",ic:"🔍",lb:"Trabajos"},
     {id:"publish1",ic:"➕",lb:"Publicar"},
+    
     {id:"specialists",ic:"👷",lb:"Especialistas"},
     {id:"userprofile",ic:null,lb:"Mi perfil"},
   ];
@@ -1588,7 +1593,149 @@ function Terms({onNav,user}){
     </div><Footer onNav={onNav}/>
   </div>;
 }
+// ─── LICITACIONES ─────────────────────────────────────────────────────────────
+function Licitaciones({onNav,user}){
+  const [lics,setLics]=useState([]);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{
+    getLicitaciones().then(r=>{ setLics(r.data||[]); setLoading(false); });
+  },[]);
+  return <div>
+    <TopBar onNav={onNav} user={user}/><Navbar onNav={onNav} user={user}/>
+    <div className="sbar" style={{background:`linear-gradient(135deg,${T.navy},${T.navyLight})`}}>
+      <span>🏗️</span><span>Licitaciones de Obras</span>
+    </div>
+    <div style={{padding:14}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <h2 style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:18,color:T.navy}}>Obras disponibles</h2>
+        {user&&<button className="btn bp bsm" onClick={()=>onNav("crearLicitacion")}>+ Publicar obra</button>}
+      </div>
+      {loading?<Loading/>:lics.length===0
+        ?<div style={{textAlign:"center",padding:28,color:T.tm}}><div style={{fontSize:36,marginBottom:8}}>🏗️</div><p>No hay licitaciones abiertas</p></div>
+        :lics.map(l=>(
+          <div key={l.id} className="card" style={{padding:14,marginBottom:10,cursor:"pointer"}} onClick={()=>onNav("licitacionDetail",{lic:l})}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+              <span style={{fontSize:10,fontWeight:800,color:T.orange,textTransform:"uppercase"}}>{l.category}</span>
+              <span style={{fontSize:10,padding:"2px 8px",borderRadius:20,background:l.status==="abierta"?T.greenSoft:T.amberSoft,color:l.status==="abierta"?T.green:T.amber,fontWeight:700}}>{l.status}</span>
+            </div>
+            <div style={{fontWeight:700,fontSize:14,color:T.navy,marginBottom:4}}>{l.title}</div>
+            <div style={{fontSize:12,color:T.tm,marginBottom:8}}>{l.location}</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontWeight:800,fontSize:16,color:T.orange}}>${l.budget.toLocaleString()}</div>
+              <div style={{fontSize:11,color:T.tl}}>Vence: {l.deadline}</div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+    <Footer onNav={onNav}/>
+  </div>;
+}
 
+function LicitacionDetail({onNav,user,params={}}){
+  const l=params.lic||{};
+  const [propuestas,setPropuestas]=useState([]);
+  const [showForm,setShowForm]=useState(false);
+  const [form,setForm]=useState({company_name:"",description:"",price:""});
+  const [saving,setSaving]=useState(false);
+
+  useEffect(()=>{
+    if(l.id) getPropuestas(l.id).then(r=>setPropuestas(r.data||[]));
+  },[l.id]);
+
+  const handlePropuesta=async()=>{
+    if(!user){onNav("login");return;}
+    if(!form.company_name||!form.price){alert("Completá empresa y precio");return;}
+    setSaving(true);
+    await createPropuesta({licitacion_id:l.id,user_id:user.id,...form,price:Number(form.price)});
+    getPropuestas(l.id).then(r=>setPropuestas(r.data||[]));
+    setShowForm(false);
+    setSaving(false);
+  };
+
+  const handleAdjudicar=async(p)=>{
+    await adjudicarPropuesta(l.id,p.id,p.user_id);
+    getPropuestas(l.id).then(r=>setPropuestas(r.data||[]));
+  };
+
+  return <div>
+    <TopBar onNav={onNav} user={user}/><Navbar onNav={onNav} user={user}/>
+    <div style={{padding:14}}>
+      <button className="btn bs bsm" style={{marginBottom:12}} onClick={()=>onNav("licitaciones")}>← Volver</button>
+      <div className="card" style={{padding:16,marginBottom:14}}>
+        <span style={{fontSize:10,fontWeight:800,color:T.orange,textTransform:"uppercase"}}>{l.category}</span>
+        <h2 style={{fontFamily:"'Syne',sans-serif",fontWeight:900,fontSize:20,color:T.navy,margin:"6px 0"}}>{l.title}</h2>
+        <p style={{fontSize:13,color:T.tm,marginBottom:12}}>{l.description}</p>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <span style={{fontSize:12,background:T.orangeGlow,color:T.orange,padding:"3px 10px",borderRadius:20,fontWeight:700}}>💰 ${l.budget?.toLocaleString()}</span>
+          <span style={{fontSize:12,background:T.greenSoft,color:T.green,padding:"3px 10px",borderRadius:20,fontWeight:700}}>📍 {l.location}</span>
+          <span style={{fontSize:12,background:"#f1f5f9",color:T.tm,padding:"3px 10px",borderRadius:20}}>📅 Vence: {l.deadline}</span>
+        </div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <h3 style={{fontWeight:800,fontSize:15,color:T.navy}}>Propuestas ({propuestas.length})</h3>
+        {l.status==="abierta"&&<button className="btn bp bsm" onClick={()=>setShowForm(!showForm)}>+ Ofertar</button>}
+      </div>
+      {showForm&&<div className="card" style={{padding:14,marginBottom:14}}>
+        <div className="field"><label>Empresa</label><input className="inp" value={form.company_name} onChange={e=>setForm({...form,company_name:e.target.value})} placeholder="Nombre de tu empresa"/></div>
+        <div className="field"><label>Descripción de la propuesta</label><textarea className="inp" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} rows={3}/></div>
+        <div className="field"><label>Precio ofertado (ARS)</label><input className="inp" type="number" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} placeholder="500000"/></div>
+        <button className="btn bp bfull" onClick={handlePropuesta} disabled={saving}>{saving?"Enviando...":"Enviar propuesta"}</button>
+      </div>}
+      {propuestas.map(p=>(
+        <div key={p.id} className="card" style={{padding:12,marginBottom:8,borderLeft:`3px solid ${p.status==="ganadora"?T.green:T.border}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+            <span style={{fontWeight:700,fontSize:13,color:T.navy}}>{p.company_name}</span>
+            <span style={{fontWeight:800,fontSize:14,color:T.orange}}>${Number(p.price).toLocaleString()}</span>
+          </div>
+          <p style={{fontSize:12,color:T.tm,marginBottom:8}}>{p.description}</p>
+          {p.status==="ganadora"&&<span style={{fontSize:11,color:T.green,fontWeight:700}}>✅ Propuesta adjudicada</span>}
+          {l.status==="abierta"&&user?.id===l.user_id&&p.status==="pendiente"&&
+            <button className="btn" style={{background:T.greenSoft,color:T.green,border:`1px solid ${T.green}`,borderRadius:20,padding:"6px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}} onClick={()=>handleAdjudicar(p)}>Adjudicar obra</button>
+          }
+        </div>
+      ))}
+      {propuestas.length===0&&!showForm&&<div style={{textAlign:"center",padding:24,color:T.tm}}><p>Todavía no hay propuestas</p></div>}
+    </div>
+    <Footer onNav={onNav}/>
+  </div>;
+}
+
+function CrearLicitacion({onNav,user}){
+  const EMPTY={title:"",description:"",category:"",location:"",budget:"",deadline:""};
+  const [form,setForm]=useState(EMPTY);
+  const [saving,setSaving]=useState(false);
+  const cats=["Construcción","Refacción","Electricidad","Plomería","Pintura","Jardinería","Limpieza","Otro"];
+
+  const handleSave=async()=>{
+    if(!user){onNav("login");return;}
+    if(!form.title||!form.budget||Number(form.budget)<500000){alert("El presupuesto mínimo es $500.000");return;}
+    setSaving(true);
+    const r=await createLicitacion({...form,budget:Number(form.budget),user_id:user.id});
+    setSaving(false);
+    if(r.data) onNav("licitacionDetail",{lic:r.data});
+  };
+
+  return <div>
+    <TopBar onNav={onNav} user={user}/><Navbar onNav={onNav} user={user}/>
+    <div className="sbar" style={{background:`linear-gradient(135deg,${T.navy},${T.navyLight})`}}><span>🏗️</span><span>Publicar Licitación</span></div>
+    <div style={{padding:14}}>
+      <div className="field"><label>Título de la obra</label><input className="inp" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Ej: Construcción de galpón industrial"/></div>
+      <div className="field"><label>Categoría</label>
+        <select className="inp" value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>
+          <option value="">Seleccioná una categoría</option>
+          {cats.map(c=><option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+      <div className="field"><label>Descripción</label><textarea className="inp" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} rows={4} placeholder="Describí el trabajo a realizar"/></div>
+      <div className="field"><label>Ubicación</label><input className="inp" value={form.location} onChange={e=>setForm({...form,location:e.target.value})} placeholder="Ej: CABA, Buenos Aires"/></div>
+      <div className="field"><label>Presupuesto estimado (ARS)</label><input className="inp" type="number" value={form.budget} onChange={e=>setForm({...form,budget:e.target.value})} placeholder="500000"/></div>
+      <div className="field"><label>Fecha límite de propuestas</label><input className="inp" type="date" value={form.deadline} onChange={e=>setForm({...form,deadline:e.target.value})}/></div>
+      <button className="btn bp bfull" onClick={handleSave} disabled={saving}>{saving?"Publicando...":"Publicar licitación"}</button>
+    </div>
+    <Footer onNav={onNav}/>
+  </div>;
+}
 // ══════════════════════════════════════════════════════════════════════════════
 //  APP SHELL — gestiona sesión, estado global y routing
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1728,6 +1875,9 @@ export default function App(){
     register:    <Register      onNav={onNav} setUser={setUser} setSession={setSession}/>,
     faqs:        <FAQs          {...C}/>,
     terms:       <Terms         {...C}/>,
+    licitaciones: <Licitaciones {...C}/>,
+    licitacionDetail: <LicitacionDetail {...C} params={params}/>,
+    crearLicitacion: <CrearLicitacion {...C}/>,
   };
 
   return <>
