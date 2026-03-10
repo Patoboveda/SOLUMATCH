@@ -14,7 +14,7 @@ import {
   getSpecialists, getMySpecialistProfile, createSpecialist,
   createPostulacion, getMyPostulaciones, confirmPostulacion,
   getMessages, sendMessage, subscribeToMessages,
-  uploadPhoto,
+  uploadPhoto, resetPassword,
   getLicitaciones, getMyLicitaciones, createLicitacion,
   getPropuestas, createPropuesta, adjudicarPropuesta,
 } from "./supabase";
@@ -1453,6 +1453,15 @@ function Chat({onNav,params,user}){
 function Login({onNav,setUser,setSession}){
   const [em,setEm]=useState(""); const [pw,setPw]=useState("");
   const [loading,setLoading]=useState(false); const [err,setErr]=useState("");
+  const [showReset,setShowReset]=useState(false); const [resetSent,setResetSent]=useState(false);
+
+  const doReset=async()=>{
+    if(!em){setErr("Ingresá tu email primero");return;}
+    setLoading(true);
+    await resetPassword(em);
+    setLoading(false);
+    setResetSent(true);
+  };
 
   const doLogin=async()=>{
     setLoading(true);setErr("");
@@ -1482,7 +1491,17 @@ function Login({onNav,setUser,setSession}){
       {err&&<ErrMsg msg={err}/>}
       <div className="field"><label>E-Mail</label><input className="inp" type="email" value={em} onChange={e=>setEm(e.target.value)} placeholder="tu@email.com"/></div>
       <div className="field"><label>Contraseña</label><input className="inp" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
-      <div style={{textAlign:"right",marginBottom:18}}><span style={{fontSize:13,color:T.orange,cursor:"pointer",fontWeight:700}}>¿Olvidaste tu contraseña?</span></div>
+      <div style={{textAlign:"right",marginBottom:18}}>
+  <span style={{fontSize:13,color:T.orange,cursor:"pointer",fontWeight:700}} onClick={()=>setShowReset(true)}>¿Olvidaste tu contraseña?</span>
+</div>
+{showReset&&<div className="card" style={{padding:14,marginBottom:14}}>
+  {resetSent
+    ?<p style={{color:T.green,fontWeight:700,textAlign:"center"}}>✅ Te enviamos un email para recuperar tu contraseña</p>
+    :<><p style={{fontSize:13,color:T.tm,marginBottom:10}}>Ingresá tu email y te enviamos un link para recuperar tu contraseña</p>
+      <button className="btn bp bfull" onClick={doReset} disabled={loading}>{loading?"Enviando...":"Enviar link"}</button>
+    </>
+  }
+</div>}
       <button className="btn bs bfull blg" style={{marginBottom:13}} disabled={loading||!em||!pw} onClick={doLogin}>{loading?"Ingresando...":"Ingresar"}</button>
       <div style={{textAlign:"center",fontSize:13,color:T.tm}}>¿No tenés cuenta? <span style={{color:T.orange,fontWeight:800,cursor:"pointer"}} onClick={()=>onNav("register")}>Crear cuenta</span></div>
     </div><Footer onNav={onNav}/>

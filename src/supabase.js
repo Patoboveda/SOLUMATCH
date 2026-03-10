@@ -260,3 +260,7 @@ export const adjudicarPropuesta = async (licitacionId, propuestaId, winnerId) =>
   await supabase.from("propuestas").update({ status: "ganadora" }).eq("id", propuestaId);
   return supabase.from("licitaciones").update({ status: "adjudicada", winner_id: winnerId }).eq("id", licitacionId);
 }
+export const resetPassword = async (email) =>
+  supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://solumatch.com/reset-password',
+  });
