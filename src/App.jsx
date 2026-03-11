@@ -3,21 +3,54 @@
 //  Front end conectado a Supabase con auth real, base de datos y chat en vivo
 //  Guardar en: src/App.jsx
 // ══════════════════════════════════════════════════════════════════════════════
+// ─── MAPA ────────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect, useCallback } from "react";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import LogoImg from "./logoAzul.svg";
 import LogoBlanco from "./LogoBlanco.svg";
-import {
-  supabase,
-  signUp, signIn, signInWithGoogle, signOut, getSession,
-  getProfile, updateProfile,
-  getWorks, getMyWorks, createWork,
-  getSpecialists, getMySpecialistProfile, createSpecialist,
-  createPostulacion, getMyPostulaciones, confirmPostulacion,
-  getMessages, sendMessage, subscribeToMessages,
-  uploadPhoto, resetPassword,
-  getLicitaciones, getMyLicitaciones, createLicitacion,
-  getPropuestas, createPropuesta, adjudicarPropuesta,
-} from "./supabase";
+import { supabase, signUp, signIn, signInWithGoogle, signOut, getSession, getProfile, updateProfile, getWorks, getMyWorks, createWork, getSpecialists, getMySpecialistProfile, createSpecialist, createPostulacion, getMyPostulaciones, confirmPostulacion, getMessages, sendMessage, subscribeToMessages, uploadPhoto, resetPassword, getLicitaciones, getMyLicitaciones, createLicitacion, getPropuestas, createPropuesta, adjudicarPropuesta } from "./supabase";
+const GMAPS_LIBS=["places"];
+function MapPicker({onSelect,center={lat:-34.6037,lng:-58.3816}}){
+  const{isLoaded}=useJsApiLoader({googleMapsApiKey:process.env.REACT_APP_GOOGLE_MAPS_KEY,libraries:GMAPS_LIBS});
+  const[marker,setMarker]=useState(center);
+  const[search,setSearch]=useState("");
+  const inputRef=useRef();
+
+  const doSearch=()=>{
+    if(!window.google||!search)return;
+    const geocoder=new window.google.maps.Geocoder();
+    geocoder.geocode({address:search+", Argentina"},(results,status)=>{
+      if(status==="OK"&&results[0]){
+        const loc=results[0].geometry.location;
+        setMarker({lat:loc.lat(),lng:loc.lng()});
+        onSelect&&onSelect({lat:loc.lat(),lng:loc.lng(),address:results[0].formatted_address});
+      }
+    });
+  };
+
+  if(!isLoaded)return <div style={{textAlign:"center",padding:20,color:T.tm}}>Cargando mapa...</div>;
+  return <div>
+    <div style={{display:"flex",gap:8,marginBottom:8}}>
+      <input ref={inputRef} className="inp" value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doSearch()} placeholder="Buscá tu dirección..." style={{flex:1}}/>
+      <button className="btn bp bsm" onClick={doSearch}>Buscar</button>
+    </div>
+    <GoogleMap mapContainerStyle={{width:"100%",height:200,borderRadius:12}} center={marker} zoom={14} onClick={e=>{const pos={lat:e.latLng.lat(),lng:e.latLng.lng()};setMarker(pos);onSelect&&onSelect({...pos,address:""});}}>
+      <Marker position={marker}/>
+    </GoogleMap>
+  </div>;
+}
+
+function WorksMap({works}){
+  const{isLoaded}=useJsApiLoader({googleMapsApiKey:process.env.REACT_APP_GOOGLE_MAPS_KEY,libraries:GMAPS_LIBS});
+  if(!isLoaded||!works?.length)return null;
+  const center=works[0]?.lat?{lat:works[0].lat,lng:works[0].lng}:{lat:-34.6037,lng:-58.3816};
+  return <GoogleMap mapContainerStyle={{width:"100%",height:260,borderRadius:12}} center={center} zoom={12}>
+    {works.filter(w=>w.lat&&w.lng).map(w=><Marker key={w.id} position={{lat:w.lat,lng:w.lng}} title={w.title}/>)}
+  </GoogleMap>;
+}
+
+
+
 function Logo({onNav}){ return <div className="logo" onClick={()=>onNav("home")}><img src={LogoImg} style={{height:36,width:"auto",maxWidth:160}}/></div>; }
 
 
@@ -652,9 +685,12 @@ function Publish2({onNav,draft,setDraft,user}){
           <input className="inp" value={draft.address||""} onChange={e=>setDraft({...draft,address:e.target.value})} placeholder="Calle y número..."/>
         </div>
         <div className="field"><label>📍 Marcá en el mapa</label>
-          <MapContainer onLocChange={(lat,lng)=>setDraft({...draft,lat,lng})}/>
-          <p style={{fontSize:11,color:T.tl,marginTop:5}}>Tocá el mapa o arrastrá el pin para indicar la ubicación exacta.</p>
+          <MapPicker onSelect={({lat,lng,address})=>setDraft({...draft,lat,lng,address:address||draft.address})}/>
+          <p style={{fontSize:11,color:T.tl,marginTop:5}}>Buscá tu dirección o tocá el mapa para indicar la ubicación exacta.</p>
         </div>
+
+
+
       </>}
       {draft.modality==="remoto"&&<div className="alert alert-info"><span>💡</span><span>Este trabajo puede realizarse de forma remota.</span></div>}
       <button className="btn bs bfull blg" onClick={()=>onNav("publish3")}>Siguiente →</button>
