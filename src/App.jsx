@@ -1116,29 +1116,7 @@ function CreateSpec({onNav,user,onSaveSpec,saving}){
       <div className="field" style={{marginTop:12}}><label>Descripción profesional</label>
         <textarea className="inp" value={form.bio} onChange={set("bio")} placeholder="Tu experiencia, especialidades, disponibilidad..."/>
       </div>
-      <div className="field"><label>Oficios que realizás</label>
-        <input className="inp" value={form.oficios} onChange={set("oficios")} placeholder="Ej: Instalación de cañerías, destapaciones, termotanques..."/>
-      </div>
-      <div className="field"><label>Años de experiencia</label>
-        <select className="inp" value={form.experiencia} onChange={set("experiencia")}>
-          <option value="">Seleccioná...</option>
-          <option>Menos de 1 año</option>
-          <option>1 a 3 años</option>
-          <option>3 a 5 años</option>
-          <option>5 a 10 años</option>
-          <option>Más de 10 años</option>
-        </select>
-      </div>
-      <div className="field"><label>Disponibilidad</label>
-        <select className="inp" value={form.disponibilidad} onChange={set("disponibilidad")}>
-          <option value="">Seleccioná...</option>
-          <option>Lunes a viernes</option>
-          <option>Fines de semana</option>
-          <option>Todos los días</option>
-          <option>Solo urgencias</option>
-        </select>
-      </div>
-      <div className="field"><label>Oficios que realizás</label>
+       <div className="field"><label>Oficios que realizás</label>
         <input className="inp" value={form.oficios} onChange={set("oficios")} placeholder="Ej: Instalación de cañerías, destapaciones, termotanques..."/>
       </div>
       <div className="field"><label>Años de experiencia</label>
