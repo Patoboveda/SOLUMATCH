@@ -1821,10 +1821,8 @@ export default function App(){
   const [user,setUser]=useState(null);
   const [session,setSession]=useState(null);
   const [authLoading,setAuthLoading]=useState(true);
-```
 
 
-```
 const [userPlan,setUserPlan]=useState("free");
 
   // ── PUBLISH DRAFT ─────────────────────────────────────────────────────
