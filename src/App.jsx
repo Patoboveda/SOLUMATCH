@@ -1823,7 +1823,7 @@ export default function App(){
   const [authLoading,setAuthLoading]=useState(true);
 ```
 
-Guardá con **Ctrl+S**. Ahora buscá el splash screen — buscá con **Ctrl+F**:
+
 ```
 const [userPlan,setUserPlan]=useState("free");
 
