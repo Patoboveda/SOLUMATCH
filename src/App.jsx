@@ -1138,6 +1138,26 @@ function CreateSpec({onNav,user,onSaveSpec,saving}){
           <option>Solo urgencias</option>
         </select>
       </div>
+      <div className="field"><label>Fotos de trabajos realizados (opcional)</label>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+          {(form.fotos||[]).map((f,i)=>(
+            <div key={i} style={{position:"relative"}}>
+              <img src={f} style={{width:80,height:80,objectFit:"cover",borderRadius:10,border:`2px solid ${T.border}`}}/>
+              <div onClick={()=>setForm({...form,fotos:(form.fotos||[]).filter((_,j)=>j!==i)})} style={{position:"absolute",top:-6,right:-6,background:T.red,color:"#fff",borderRadius:"50%",width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,cursor:"pointer"}}>✕</div>
+            </div>
+          ))}
+          {(form.fotos||[]).length<6&&<label style={{width:80,height:80,border:`2px dashed ${T.border}`,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexDirection:"column",gap:4}}>
+            <span style={{fontSize:24}}>📷</span>
+            <span style={{fontSize:10,color:T.tl}}>Agregar</span>
+            <input type="file" accept="image/*" style={{display:"none"}} onChange={async e=>{
+              const file=e.target.files[0];
+              if(!file)return;
+              const{data}=await uploadPhoto(file,`specs/${Date.now()}`);
+              if(data?.publicUrl) setForm({...form,fotos:[...(form.fotos||[]),data.publicUrl]});
+            }}/>
+          </label>}
+        </div>
+      </div>
       <button className="btn bsuc bfull blg" disabled={!form.spec||!form.cat||!form.prov||saving} onClick={()=>onSaveSpec(form)}>
         {saving?"Creando perfil...":"Crear mi perfil profesional ✓"}
       </button>
