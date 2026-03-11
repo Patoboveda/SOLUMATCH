@@ -1821,6 +1821,11 @@ export default function App(){
   const [user,setUser]=useState(null);
   const [session,setSession]=useState(null);
   const [authLoading,setAuthLoading]=useState(true);
+```
+
+Guardá con **Ctrl+S**. Ahora buscá el splash screen — buscá con **Ctrl+F**:
+```
+authLoading
   const [userPlan,setUserPlan]=useState("free");
 
   // ── PUBLISH DRAFT ─────────────────────────────────────────────────────
@@ -1828,7 +1833,9 @@ export default function App(){
 
   // ── LOAD SESSION ON MOUNT ─────────────────────────────────────────────
   useEffect(()=>{
+    const timer=setTimeout(()=>setAuthLoading(false),3000);
     getSession().then(async sess=>{
+      clearTimeout(timer);
       if(sess){
         setSession(sess);
         const{data:profile}=await getProfile(sess.user.id);
