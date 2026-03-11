@@ -1092,7 +1092,7 @@ function SpecDetail({onNav,params,user}){
 
 // ── CREATE SPEC ───────────────────────────────────────────────────────────────
 function CreateSpec({onNav,user,onSaveSpec,saving}){
-  const [form,setForm]=useState({spec:"",cat:"",matricula:"",prov:user?.prov||"",loc:user?.loc||"",bio:""});
+  const [form,setForm]=useState({spec:"",cat:"",matricula:"",prov:user?.prov||"",loc:user?.loc||"",bio:"",oficios:"",experiencia:"",disponibilidad:""});
   const set=k=>e=>setForm({...form,[k]:e.target.value});
   return <div>
     <TopBar onNav={onNav} user={user}/><Navbar onNav={onNav} user={user}/>
@@ -1115,6 +1115,50 @@ function CreateSpec({onNav,user,onSaveSpec,saving}){
       </div>
       <div className="field" style={{marginTop:12}}><label>Descripción profesional</label>
         <textarea className="inp" value={form.bio} onChange={set("bio")} placeholder="Tu experiencia, especialidades, disponibilidad..."/>
+      </div>
+      <div className="field"><label>Oficios que realizás</label>
+        <input className="inp" value={form.oficios} onChange={set("oficios")} placeholder="Ej: Instalación de cañerías, destapaciones, termotanques..."/>
+      </div>
+      <div className="field"><label>Años de experiencia</label>
+        <select className="inp" value={form.experiencia} onChange={set("experiencia")}>
+          <option value="">Seleccioná...</option>
+          <option>Menos de 1 año</option>
+          <option>1 a 3 años</option>
+          <option>3 a 5 años</option>
+          <option>5 a 10 años</option>
+          <option>Más de 10 años</option>
+        </select>
+      </div>
+      <div className="field"><label>Disponibilidad</label>
+        <select className="inp" value={form.disponibilidad} onChange={set("disponibilidad")}>
+          <option value="">Seleccioná...</option>
+          <option>Lunes a viernes</option>
+          <option>Fines de semana</option>
+          <option>Todos los días</option>
+          <option>Solo urgencias</option>
+        </select>
+      </div>
+      <div className="field"><label>Oficios que realizás</label>
+        <input className="inp" value={form.oficios} onChange={set("oficios")} placeholder="Ej: Instalación de cañerías, destapaciones, termotanques..."/>
+      </div>
+      <div className="field"><label>Años de experiencia</label>
+        <select className="inp" value={form.experiencia} onChange={set("experiencia")}>
+          <option value="">Seleccioná...</option>
+          <option>Menos de 1 año</option>
+          <option>1 a 3 años</option>
+          <option>3 a 5 años</option>
+          <option>5 a 10 años</option>
+          <option>Más de 10 años</option>
+        </select>
+      </div>
+      <div className="field"><label>Disponibilidad</label>
+        <select className="inp" value={form.disponibilidad} onChange={set("disponibilidad")}>
+          <option value="">Seleccioná...</option>
+          <option>Lunes a viernes</option>
+          <option>Fines de semana</option>
+          <option>Todos los días</option>
+          <option>Solo urgencias</option>
+        </select>
       </div>
       <button className="btn bsuc bfull blg" disabled={!form.spec||!form.cat||!form.prov||saving} onClick={()=>onSaveSpec(form)}>
         {saving?"Creando perfil...":"Crear mi perfil profesional ✓"}
@@ -1290,6 +1334,14 @@ function UserProfile({onNav,user,setUser,userPlan,setUserPlan}){
                 <div style={{fontSize:9.5,color:T.tl,textTransform:"uppercase",fontWeight:800}}>{w?.cat}</div>
                 <div style={{fontWeight:800,fontSize:13.5,color:T.navy,margin:"1px 0"}}>{w?.title}</div>
                 {p.price_offered&&<div style={{fontSize:11.5}}><span className="badge bi">💵 Tu oferta: ${p.price_offered.toLocaleString()}</span></div>}
+              <div style={{marginTop:4}}>
+                {p.status==="confirmada"
+                  ?<span style={{fontSize:11,background:T.greenSoft,color:T.green,padding:"3px 10px",borderRadius:20,fontWeight:700}}>✅ Fuiste elegido</span>
+                  :p.status==="rechazada"
+                  ?<span style={{fontSize:11,background:T.redSoft,color:T.red,padding:"3px 10px",borderRadius:20,fontWeight:700}}>❌ No fuiste elegido</span>
+                  :<span style={{fontSize:11,background:T.amberSoft,color:T.amber,padding:"3px 10px",borderRadius:20,fontWeight:700}}>⏳ En espera</span>
+                }
+              </div>
               </div>
             </div>
             <button className="btn bs bsm bfull" onClick={e=>{e.stopPropagation();onNav("chat",{work:w,other:{id:w?.user_id,name:w?.profiles?.name,avatar_url:w?.profiles?.avatar_url}});}}>💬 Chat con publicador</button>
