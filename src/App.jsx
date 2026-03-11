@@ -1825,8 +1825,7 @@ export default function App(){
 
 Guardá con **Ctrl+S**. Ahora buscá el splash screen — buscá con **Ctrl+F**:
 ```
-authLoading
-  const [userPlan,setUserPlan]=useState("free");
+const [userPlan,setUserPlan]=useState("free");
 
   // ── PUBLISH DRAFT ─────────────────────────────────────────────────────
   const [draft,setDraft]=useState(EMPTY_DRAFT);
