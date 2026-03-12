@@ -264,3 +264,8 @@ export const resetPassword = async (email) =>
   supabase.auth.resetPasswordForEmail(email, {
     redirectTo: 'https://solumatch.com/reset-password',
   });
+  export const createCalificacion = async (data) =>
+  supabase.from("calificaciones").insert([data]).select().single();
+
+export const getCalificaciones = async (userId) =>
+  supabase.from("calificaciones").select("*, profiles(name, avatar_url)").eq("to_user_id", userId);

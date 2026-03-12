@@ -3,12 +3,53 @@
 //  Front end conectado a Supabase con auth real, base de datos y chat en vivo
 //  Guardar en: src/App.jsx
 // ══════════════════════════════════════════════════════════════════════════════
+// ─── CALIFICACION ────────────────────────────────────────────────────────────
+function CalificarModal({work,toUser,fromUser,onClose,onDone}){
+  const [rating,setRating]=useState(0);
+  const [comment,setComment]=useState("");
+  const [saving,setSaving]=useState(false);
+
+  const handleSave=async()=>{
+    if(!rating)return;
+    setSaving(true);
+    await createCalificacion({
+      work_id:work.id,
+      from_user_id:fromUser.id,
+      to_user_id:toUser.id,
+      rating,
+      comment
+    });
+    setSaving(false);
+    onDone&&onDone();
+    onClose();
+  };
+
+  return <div className="overlay overlay-c" onClick={onClose}>
+    <div className="modal modal-c" style={{padding:22}} onClick={e=>e.stopPropagation()}>
+      <div style={{textAlign:"center",marginBottom:16}}>
+        <img src={toUser?.avatar_url||DEMO_AVS[0]} style={{width:60,height:60,borderRadius:"50%",objectFit:"cover",border:`3px solid ${T.orange}`,marginBottom:8}}/>
+        <div className="mtitle">Calificá a {toUser?.name}</div>
+        <p style={{fontSize:13,color:T.tm}}>{work?.title}</p>
+      </div>
+      <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:16}}>
+        {[1,2,3,4,5].map(n=>(
+          <span key={n} style={{fontSize:32,cursor:"pointer",opacity:n<=rating?1:.3}} onClick={()=>setRating(n)}>⭐</span>
+        ))}
+      </div>
+      <div className="field"><label>Comentario (opcional)</label>
+        <textarea className="inp" value={comment} onChange={e=>setComment(e.target.value)} placeholder="¿Cómo fue la experiencia?" rows={3}/>
+      </div>
+      <button className="btn bp bfull blg" disabled={!rating||saving} onClick={handleSave}>{saving?"Guardando...":"Enviar calificación"}</button>
+      <button className="btn bg bfull" style={{marginTop:8}} onClick={onClose}>Cancelar</button>
+    </div>
+  </div>;
+}
 // ─── MAPA ────────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect, useCallback } from "react";
 import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import LogoImg from "./logoAzul.svg";
 import LogoBlanco from "./LogoBlanco.svg";
-import { supabase, signUp, signIn, signInWithGoogle, signOut, getSession, getProfile, updateProfile, getWorks, getMyWorks, createWork, getSpecialists, getMySpecialistProfile, createSpecialist, createPostulacion, getMyPostulaciones, confirmPostulacion, getMessages, sendMessage, subscribeToMessages, uploadPhoto, resetPassword, getLicitaciones, getMyLicitaciones, createLicitacion, getPropuestas, createPropuesta, adjudicarPropuesta } from "./supabase";
+import { supabase, signUp, signIn, signInWithGoogle, signOut, getSession, getProfile, updateProfile, getWorks, getMyWorks, createWork, getSpecialists, getMySpecialistProfile, createSpecialist, createPostulacion, getMyPostulaciones, confirmPostulacion, getMessages, sendMessage, subscribeToMessages, uploadPhoto, resetPassword, createCalificacion, getCalificaciones, createCalificacion, getCalificaciones, getLicitaciones, getMyLicitaciones, createLicitacion, getPropuestas, createPropuesta, adjudicarPropuesta } from "./supabase";
 const GMAPS_LIBS=["places"];
 function MapPicker({onSelect,center={lat:-34.6037,lng:-58.3816}}){
   const{isLoaded}=useJsApiLoader({googleMapsApiKey:process.env.REACT_APP_GOOGLE_MAPS_KEY,libraries:GMAPS_LIBS});
@@ -958,7 +999,13 @@ function MyWorks({onNav,user}){
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:4}}>
                   <button className="btn bp bsm" onClick={()=>onNav("chat",{work:w,other:{id:p.user_id,name:p.profiles?.name,avatar_url:p.profiles?.avatar_url}})}>Chat</button>
-                  {!p.confirmed&&<button className="btn bsuc bsm" style={{fontSize:10,padding:"4px 8px"}} onClick={()=>confirmPostulacion(p.id)}>✓ OK</button>}
+                  {!p.confirmed
+                    ?<button className="btn bsuc bsm" style={{fontSize:10,padding:"4px 8px"}} onClick={async()=>{
+                        await confirmPostulacion(p.id);
+                        onNav("chat",{work:w,other:{id:p.user_id,name:p.profiles?.name,avatar_url:p.profiles?.avatar_url}});
+                      }}>✓ Elegir</button>
+                    :<span style={{fontSize:10,color:T.green,fontWeight:700}}>✅ Elegido</span>
+                  }
                 </div>
               </div>
             ))}
@@ -966,6 +1013,10 @@ function MyWorks({onNav,user}){
               <button className="btn bg bsm" style={{flex:1}} onClick={()=>onNav("search1",{work:w})}>Ver detalle</button>
               <button className="btn bs bsm" style={{flex:1}} onClick={()=>onNav("chat",{work:w})}>💬 Chat</button>
             </div>
+            {w.postulaciones?.some(p=>p.confirmed)&&!w.calificado&&(()=>{
+              const pConf=w.postulaciones.find(p=>p.confirmed);
+              return <button className="btn bsuc bfull bsm" style={{marginTop:6}} onClick={()=>onNav("calificar",{work:w,toUser:{id:pConf.user_id,name:pConf.profiles?.name,avatar_url:pConf.profiles?.avatar_url}})}>✅ Trabajo realizado — Calificar</button>;
+            })()}
           </div>
         ))
       }
@@ -1987,7 +2038,9 @@ const [userPlan,setUserPlan]=useState("free");
     licitaciones: <Licitaciones {...C}/>,
     licitacionDetail: <LicitacionDetail {...C} params={params}/>,
     crearLicitacion: <CrearLicitacion {...C}/>,
+    calificar: params?.work&&params?.toUser?<CalificarModal work={params.work} toUser={params.toUser} fromUser={user} onClose={()=>onNav("myworks")} onDone={()=>onNav("myworks")}/>:<div/>,
   };
+
 
   return <>
     <style>{CSS}</style>
