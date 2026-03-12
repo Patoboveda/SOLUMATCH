@@ -565,7 +565,8 @@ function HomePage({onNav,user}){
       setWorks(w.data||[]);
       setSpecs(s.data||[]);
       setLoading(false);
-    });
+    }).catch(()=>setLoading(false));
+
   },[]);
 
   return <div>
